@@ -1,0 +1,130 @@
+---
+title: "Assign_2"
+author: "Marco Muto"
+date: "24/07/2021"
+output: html_document
+---
+
+
+QUESTIONS
+1. Check the datatypes of the attributes. (3 points)
+
+```{r}
+wine<-read.csv("C:/Users/Marco/Documents/CMTH 642/Assignment 2/winequality-white.csv",header= T,sep = ";")
+
+head(wine)
+```
+
+
+2. Are there any missing values in the dataset? (4 points)
+```{r}
+which(is.na(wine))
+
+#there are no missing values in the dataset.
+```
+
+3. What is the correlation between the attributes other than Quality? (10 points)
+```{r}
+cor(wine[-12])
+```
+
+4. Graph the frequency distribution of wine quality by using Quality. (10 points)
+```{r}
+hist(wine$quality)
+```
+
+5. Reduce the levels of rating for quality to two levels as Pass and Fail. Assign the levels of 3, 4 and 5 to level Fail; and 6, 7, 8 and 9 to level Pass. (10 points)
+
+```{r}
+wine$quality<-as.factor(ifelse(wine$quality > 5,1,0))
+
+
+table(wine$quality)
+#fail = 0
+#pass = 1
+```
+
+
+6. Normalize the data set. (12 points)
+```{r}
+normalize <- function(x) {
+  return ((x-min(x))/(max(x)-min(x)))
+}
+
+wineN<-wine
+wineN[,-12] <- sapply(wineN[,-12], normalize)
+summary(wineN)
+
+
+```
+
+
+7. Divide the dataset to training and test sets. (12 points)
+```{r}
+train_index = sample(1:nrow(wineN),0.7*nrow(wineN))
+train.set= wineN[train_index,]
+test.set= wineN[-train_index,]
+
+```
+
+
+
+
+8. Use the Logistic Regression algorithm to predict the quality of wine using its attributes. (12 points)
+
+```{r}
+LR<-glm(formula =quality~.,data=train.set,family = "binomial")
+summary(LR)
+```
+
+```{r}
+pred=predict(LR,type ='response',newdata = test.set)
+
+predicted.quality<-ifelse(pred>=0.717189,1,0)
+
+# I decided to use the median to predict if the model can tell whether the quality of a given wine will pass. Due to an imbalanced dataset we have clear ptoblems with swekwness in the predicted variable of our model. This whould affect the performance of the model by making it less accurate at its prediction.  
+
+```
+
+```{r}
+hist(pred)
+summary(pred)
+```
+
+9. Display the confusion matrix to evaluate the model performance. (12 points)
+```{r}
+c.matrix<-table(actual=test.set$quality,pred=predicted.quality)
+c.matrix
+```
+
+10. Evaluate the model performance by computing Accuracy, Sensitivity and Specificity. (15 points)
+```{r}
+TP=c.matrix["0","0"]
+FP=c.matrix["1","0"]
+FN=c.matrix["0","1"]
+TN=c.matrix["1","1"]
+```
+
+
+Accuracy
+```{r}
+Accuracy=(TP+TN)/(TP+FN+FP+TN)
+Accuracy
+```
+
+Sensitivity
+```{r}
+Sensitivity=TP/(TP+FN)
+Sensitivity
+```
+
+Specificity
+```{r}
+Specificity=TN/(TN+FP)
+Specificity
+```
+
+I obtained accuracy of 68.97 percent, Sensitivity of 78.64% and Specificity of 64.19%
+## R Markdown
+
+

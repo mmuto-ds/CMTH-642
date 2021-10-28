@@ -1,0 +1,126 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+QUESTIONS
+1. Check the datatypes of the attributes. (3 points)
+
+```{r}
+wineQ<-read.csv("C:/Users/Marco/Documents/CMTH 642/Assignment 2/winequality-white.csv",header= T,sep = ";")
+
+head(wineQ)
+```
+
+
+2. Are there any missing values in the dataset? (4 points)
+```{r}
+which(is.na(wineQ))
+```
+
+3. What is the correlation between the attributes other than Quality? (10 points)
+```{r}
+cor(wineQ[-12])
+```
+
+4. Graph the frequency distribution of wine quality by using Quality. (10 points)
+```{r}
+hist(wineQ$quality)
+```
+
+5. Reduce the levels of rating for quality to two levels as Pass and Fail. Assign the levels of 3, 4 and 5 to level Fail; and 6, 7, 8 and 9 to level Pass. (10 points)
+```{r}
+wineQ$quality<-ifelse(wineQ$quality <=5,"Fail","Pass")
+wineQ$quality = ordered(wineQ$quality, c('Fail', 'Pass'))
+tail(wineQ$quality)
+
+```
+```{r}
+wineQ$quality<-ifelse(wineQ$quality <=5,0,1)
+
+tail(wineQ$quality)
+```
+
+6. Normalize the data set. (12 points)
+```{r}
+normalize <- function(x) {
+  return ((x-min(x))/(max(x)-min(x)))
+}
+wineN <- as.data.frame(sapply(wineQ[-12], normalize))
+
+
+```
+
+
+7. Divide the dataset to training and test sets. (12 points)
+```{r}
+train_index = sample(1:nrow(wineN),0.7*nrow(wineN))
+train.set= wineN[train_index,]
+test.set= wineN[-train_index,]
+
+train_labels = wineQ[train_index, 12] 
+test_labels = wineQ[-train_index, 12]
+```
+
+
+```{r}
+train_index = sample(1:nrow(wineN),0.7*nrow(wineN))
+train.set= wineN[train_index,]
+test.set= wineN[-train_index,]
+```
+
+
+
+8. Use the Logistic Regression algorithm to predict the quality of wine using its attributes. (12 points)
+```{r}
+LR=glm(formula = train_labels~.,
+       data = train.set,
+       family = binomial)
+pred=predict(LR,type ='response',newdata = test.set)
+
+library(InformationValue)
+optCutOff <- optimalCutoff(test.set$quality, pred)[1]
+y_pred = ifelse(pred > optCutOff, 1, 0)
+
+```
+
+
+9. Display the confusion matrix to evaluate the model performance. (12 points)
+```{r}
+CM_LR = table(test_labels, y_pred)
+CM_LR
+
+```
+
+10. Evaluate the model performance by computing Accuracy, Sensitivity and Specificity. (15 points)
+```{r}
+table(wineQ$quality)
+```
+
+
+
+```{r}
+library(InformationValue)
+optCutOff <- optimalCutoff(test_labels, pred)[1]
+y_pred = ifelse(pred > optCutOff, 1, 0)
+```
+```{r}
+head(wineN[-train_index,])
+```
+
+
+
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+
+```{r}
+install.packages("InformationValue")
+```
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
